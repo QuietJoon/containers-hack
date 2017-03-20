@@ -10,16 +10,11 @@ import Data.Maybe
 
 import Debug.Shortcut
 
-
+-- Handle Positive/Negative only case
 roughBound lb ub = \t ->
   case t of
-    (Bin p m l r) -> case () of
-      -- Handle Negative case
-      -- Handle P/N case
-      -- Handle Positive case
-      _ | otherwise -> goU Nil t Nil
+    (Bin p m l r) -> goU Nil t Nil
     _ -> goG t
-
   where
     goU ld tree@(Bin p m l r) rd
       -- How to clear unnecessary ld/rd
@@ -30,7 +25,7 @@ roughBound lb ub = \t ->
       -- | nomatch lb p m = traceX "A'" $ goU l r rd
       -- | nomatch ub p m = traceX "B'" $ goU ld l r
 
-      -- when match, there is no problem, but when nomatch 
+      -- when match, there is no problem, but when nomatch
       -- | zero ub m = traceX "C" $
       | match ub p m && zero ub m = -- traceX "c_" $
           goU ld l r
@@ -46,23 +41,14 @@ roughBound lb ub = \t ->
       | otherwise = (Nil, tip, Nil)
     goG Nil = (Nil, Nil, Nil)
 
--- bound
+-- bound guarantees
 -- (ld,bd,rd): (findMax ld) < lb , lb <= (findMin bd) , (findMax bd) <= ub , ub < (findMin rd)
 -- roughBound does not guarantee any conditions.
-
-grabAll = \t ->
-  case t of
-    (Bin p m l r) | m < 0 -> go r (go l [])
-    _ -> go t []
-  -- case t of 
-  where
-    go (Bin _ _ l r) aList = go l (go r aList)
-    go (Tip k v) aList = (k,v):aList
-    go Nil aList = aList
-
-bound lb ub t = traceS (roughBound lb ub t) $
+bounded :: Show a => Key -> Key -> IntMap a -> [(Key,a)]
+-- bound :: Key -> Key -> IntMap a -> [(Key,a)]
+bounded lb ub t = traceS (roughBound lb ub t) $
   case bd of
-    (Bin _ _ l r) -> traceX "J" $ goL ld l (goR r rd [])
+    (Bin p m l r) -> traceX "J" goL ld l (goR r rd [])
     (Tip k _) -> case () of
       _ | k >= ub -> traceX "K" $ goL Nil ld (goR bd rd [])
         | k <= lb -> traceX "M" $ goL ld bd (goR rd Nil [])

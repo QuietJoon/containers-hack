@@ -4,6 +4,7 @@ module Data.IntMap.Bound.Verifier where
 import Data.IntMap.Bound
 import Data.IntMap.Bound.Base
 import Data.IntMap.Hack.Tool
+import Data.IntMap.Hack.Deprecated
 import Data.IntMap.Internal as I
 
 
@@ -170,20 +171,22 @@ prop_pRB =
   quickCheckWith stdArgs { maxSuccess = 100000 }
     ((\lb ub list -> rbTester lb ub (double . absList $ list)) :: Int -> Int -> [Int] -> Bool)
 
-prop_B f vf =
-  quickCheckWith stdArgs { maxSuccess = 10000 }
+prop_F f vf =
+  quickCheckWith stdArgs { maxSuccess = 1000000 }
     (tester f vf :: Int -> Int -> [Int] -> Bool)
 
-prop_pB f vf =
-  quickCheckWith stdArgs { maxSuccess = 10000 }
+prop_pF f vf =
+  quickCheckWith stdArgs { maxSuccess = 1000000 }
     (pTester f vf :: Int -> Int -> [Int] -> Bool)
+
+prop_pB = prop_pF bounded (toListf boundedV)
 
 -- For use like: prop_pB bound (toListf takeBoundedB)
 toListf f lb ub t = toList $ f lb ub t
 
 prop_G =
   quickCheckWith stdArgs { maxSuccess = 100000 }
-    (seqTester grabAll list :: [Int] -> Bool)
+    (seqTester grabAll :: [Int] -> Bool)
 
 prop_BPM =
   quickCheckWith stdArgs { maxSuccess = 100000 }
