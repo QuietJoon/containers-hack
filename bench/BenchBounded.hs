@@ -24,7 +24,7 @@ import System.Random
 import Debug.Trace
 
 
-myConfig = defaultConfig {timeLimit=60.0}
+myConfig = defaultConfig {timeLimit=120.0}
 
 gens = [mkStdGen x | x<- [1..10000]]
 randomIntList = randomRs (0,999999) (mkStdGen 0) :: [Int]

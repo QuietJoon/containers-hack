@@ -55,6 +55,7 @@ bTester bf lbx ubx t
     (lb,ub) = if (abs lbx) <= (abs ubx) then (abs lbx,abs ubx) else (abs ubx,abs lbx)
 
 
+
 rbTester lbx ubx t
   | ( nf ld) && ( nf bd) && ( nf rd) = nf t
   | nf t = (nf ld) && (nf bd) && (nf rd)
@@ -96,7 +97,8 @@ rbTester lbx ubx t
   | otherwise = error "[ERROR] rbTester: Can't be"
 
   where
-    (ld,bd,rd) = roughBound lb ub t
+    (lx,bx,nbx,rx) = roughBound lb ub t
+    (ld,bd,rd) = (lx,union bx nbx,rx)-- roughBound lb ub t
     inlb = inlbf lb bd
     inub = inubf ub bd
     (lb,ub) = if (abs lbx) <= (abs ubx) then (abs lbx,abs ubx) else (abs ubx,abs lbx)
@@ -179,6 +181,7 @@ prop_pF f vf =
   quickCheckWith stdArgs { maxSuccess = 1000000 }
     (pTester f vf :: Int -> Int -> [Int] -> Bool)
 
+prop_B  = prop_F  bounded (toListf boundedV)
 prop_pB = prop_pF bounded (toListf boundedV)
 
 -- For use like: prop_pB bound (toListf takeBoundedB)

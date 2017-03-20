@@ -13,73 +13,77 @@ import Debug.Shortcut
 -- Handle Positive/Negative only case
 roughBound lb ub = \t ->
   case t of
-    (Bin p m l r) -> goU Nil t Nil
+    (Bin p m l r) -> case () of
+      _ | m > 0 || p < 0 -> def $ goU Nil t Nil
+        | 0 <= lb -> def $ if I.null lld then (r,lbd,lrd) else (lld,lbd,lrd)
+        | ub <  0 -> def $ if I.null rrd then (rld,rbd,l) else (rld,rbd,rrd)
+        | otherwise ->
+            if I.null nbd
+              then (nld,pbd,Nil,prd)
+              else (nld,nbd,pbd,prd)
+            where
+              (lld,lbd,lrd) = goU Nil l Nil
+              (rld,rbd,rrd) = goU Nil r Nil
+              (_,pbd,Nil,prd) = roughBound 0 ub l
+              (nld,nbd,Nil,_) = roughBound lb (-1) r
     _ -> goG t
+
   where
     goU ld tree@(Bin p m l r) rd
       -- How to clear unnecessary ld/rd
-      | nomatch lb p m && lb > p = -- traceX "a_" $
-          goU l r rd
-      | nomatch ub p m && ub < p = -- traceX "b_" $
-          goU ld l r
-      -- | nomatch lb p m = traceX "A'" $ goU l r rd
-      -- | nomatch ub p m = traceX "B'" $ goU ld l r
-
-      -- when match, there is no problem, but when nomatch
-      -- | zero ub m = traceX "C" $
-      | match ub p m && zero ub m = -- traceX "c_" $
-          goU ld l r
-      -- | not (zero lb m) = traceX "D" $ goU l r rd
-      | match lb p m && not (zero lb m) = -- traceX "d_" $
-          goU l r rd
-      | otherwise = -- traceX "e_" $
-          (ld, tree, rd)
+      | nomatch lb p m && lb > p = goU l r rd
+      | nomatch ub p m && ub < p = goU ld l r
+      | match ub p m && zero ub m = goU ld l r
+      | match lb p m && not (zero lb m) = goU l r rd
+      | otherwise = (ld, tree, rd)
     goU ld tree rd = (ld,tree,rd)
     goG tip@(Tip k _)
-      | k < lb = (tip, Nil, Nil)
-      | k > ub = (Nil, Nil, tip)
-      | otherwise = (Nil, tip, Nil)
-    goG Nil = (Nil, Nil, Nil)
+      | k < lb = (tip, Nil, Nil, Nil)
+      | k > ub = (Nil, Nil, Nil, tip)
+      | otherwise = (Nil, tip, Nil, Nil)
+    goG Nil = (Nil, Nil, Nil, Nil)
+    def ~(l,b,r) = (l,b,Nil,r)
 
--- bound guarantees
+-- bounded guarantees
 -- (ld,bd,rd): (findMax ld) < lb , lb <= (findMin bd) , (findMax bd) <= ub , ub < (findMin rd)
 -- roughBound does not guarantee any conditions.
 bounded :: Show a => Key -> Key -> IntMap a -> [(Key,a)]
--- bound :: Key -> Key -> IntMap a -> [(Key,a)]
 bounded lb ub t = traceS (roughBound lb ub t) $
-  case bd of
-    (Bin _ _ l r) -> traceX "J" goL ld l (goR r rd [])
-    (Tip k _) -> case () of
-      _ | k >= ub -> traceX "K" $ goL Nil ld (goR bd rd [])
-        | k <= lb -> traceX "M" $ goL ld bd (goR rd Nil [])
-        | otherwise -> traceX "N" $ goL ld bd (goR rd Nil [])
-    Nil -> goL Nil ld (goR rd Nil [])
+  if I.null nbd
+    then
+      case bd of
+        (Bin _ _ l r) -> goL ld l (goR r rd [])
+        (Tip k _) -> case () of
+          _ | k >= ub -> goL Nil ld (goR bd rd [])
+            | k <= lb -> goL ld bd (goR rd Nil [])
+            | otherwise -> goL ld bd (goR rd Nil [])
+        Nil -> goL Nil ld (goR rd Nil [])
+    else
+      goL ld bd (goR nbd rd [])
   where
-    (ld,bd,rd) = roughBound lb ub t
+    (ld,bd,nbd,rd) = roughBound lb ub t
     -- goR: assume that `lb <= findMin base`.
     goR (Bin p m l r) rd aList
       -- assume that there is no Nil in Bin
-      -- | nomatch ub p m && ub < p = goR l r aList
-      -- | nomatch ub p m && ub < p = goR l r []
-      | nomatch ub p m && ub < p = traceX "V" $ goR l Nil []
+      | nomatch ub p m && ub < p = goR l Nil []
       -- assume that not `I.null r`
-      | match ub p m && zero ub m = traceX "W" $ goR l r []
-      | otherwise = traceX "X" $ go l (goR r rd [])
+      | match ub p m && zero ub m = goR l r []
+      | otherwise = go l (goR r rd [])
 
     goR (Tip k v) rd aList
-      | ub < k = traceX "Y" $ [(k,v)]
-      | otherwise = traceX "Z" $ (k,v) : goR rd Nil aList
+      | ub < k = [(k,v)]
+      | otherwise = (k,v) : goR rd Nil aList
 
     goR Nil _ _ = []
 
     goL ld (Bin p m l r) aList
-      | nomatch lb p m && lb > p = traceX "A" $ goL Nil r aList
-      | match lb p m && not (zero lb m) = traceX "B" $ goL l r aList
-      | otherwise = traceX "C" $ goL ld l (go r aList)
+      | nomatch lb p m && lb > p = goL Nil r aList
+      | match lb p m && not (zero lb m) = goL l r aList
+      | otherwise = goL ld l (go r aList)
 
     goL ld (Tip k v) aList
-      | k < lb = traceX "D" $ (k,v) : aList
-      | otherwise = traceX "E" $ goL Nil ld ((k,v):aList)
+      | k < lb = (k,v) : aList
+      | otherwise = goL Nil ld ((k,v):aList)
 
     goL _ Nil aList = aList
 
