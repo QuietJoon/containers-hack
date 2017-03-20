@@ -1,0 +1,24 @@
+name:                   containers-hack
+version:                0.0.0.1
+synopsis:               Some additional functions for containers
+-- description:            
+homepage:               http://dev.quietjoon.net/projects/containers-hack.html
+bug-reports:            https://github.com/QuietJoon/containers-hack/issues
+license:                BSD3
+license-file:           LICENSE
+author:                 YongJoon Joe
+maintainer:             developer@quietjoon.net
+copyright:              2017 YongJoon Joe
+category:               Data
+build-type:             Simple
+extra-source-files:     ChangeLog.md README.md
+cabal-version:          >=1.10
+
+library
+  exposed-modules:      Data.IntMap.Bound
+  -- other-modules:        
+  other-extensions:     BangPatterns
+  build-depends:        base >=4.9 && <4.10
+                      , containers >=0.5 && <0.6
+  hs-source-dirs:       src
+  default-language:     Haskell2010
