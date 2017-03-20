@@ -48,15 +48,7 @@ bounded :: Show a => Key -> Key -> IntMap a -> [(Key,a)]
 -- bound :: Key -> Key -> IntMap a -> [(Key,a)]
 bounded lb ub t = traceS (roughBound lb ub t) $
   case bd of
-    (Bin p m l r) -> traceX "J" $ case () of
-      _ | m > 0 || p < 0 -> traceX "'" $ goL ld l (goR r rd [])
-        | 0 <= lb -> traceX "." $ bounded lb ub l
-        | ub < 0 -> traceX ":" $ bounded lb ub r
-        -- ((findMin' t) < 0 && 0 <= (findMax' t)) && (lb < 0 && 0 <= ub)
-        | otherwise -> traceX "-" $ goL nld nbd (goR pbd prd [])
-            where
-              (_,pbd,prd) = roughBound 0 ub l
-              (nld,nbd,_) = roughBound lb (-1) r
+    (Bin p m l r) -> traceX "J" goL ld l (goR r rd [])
     (Tip k _) -> case () of
       _ | k >= ub -> traceX "K" $ goL Nil ld (goR bd rd [])
         | k <= lb -> traceX "M" $ goL ld bd (goR rd Nil [])
@@ -94,5 +86,3 @@ bounded lb ub t = traceS (roughBound lb ub t) $
     go (Bin _ _ l r) aList = go l (go r aList)
     go (Tip k v) aList = (k,v):aList
     go Nil aList = aList
-
-
