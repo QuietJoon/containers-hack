@@ -55,6 +55,7 @@ bTester bf lbx ubx t
     (lb,ub) = if (abs lbx) <= (abs ubx) then (abs lbx,abs ubx) else (abs ubx,abs lbx)
 
 
+
 rbTester lbx ubx t
   | ( nf ld) && ( nf bd) && ( nf rd) = nf t
   | nf t = (nf ld) && (nf bd) && (nf rd)
@@ -70,8 +71,7 @@ rbTester lbx ubx t
   | ( nf ld) && (nnf bd) && ( nf rd) = traceX "B" $
       -- (findMin' bd) <= lb && ub <= (findMax' bd) && t == bd
       case bd of
-          -- (Bin _ _ _ _) -> (matchf lb bd && matchf ub bd) && t == bd
-          (Bin _ _ _ _) -> inlb && inub && t == bd
+          Bin {} -> inlb && inub && t == bd
           (Tip k _) -> lb <= k && k <= ub && t == bd
           _ -> error "[ERROR] rbTester: XXXX"
 
@@ -96,7 +96,8 @@ rbTester lbx ubx t
   | otherwise = error "[ERROR] rbTester: Can't be"
 
   where
-    (ld,bd,rd) = roughBound lb ub t
+    (lx,bx,nbx,rx) = roughBound lb ub t
+    (ld,bd,rd) = (lx,union bx nbx,rx)-- roughBound lb ub t
     inlb = inlbf lb bd
     inub = inubf ub bd
     (lb,ub) = if (abs lbx) <= (abs ubx) then (abs lbx,abs ubx) else (abs ubx,abs lbx)
@@ -179,7 +180,11 @@ prop_pF f vf =
   quickCheckWith stdArgs { maxSuccess = 1000000 }
     (pTester f vf :: Int -> Int -> [Int] -> Bool)
 
+prop_B  = prop_F  bounded (toListf boundedV)
 prop_pB = prop_pF bounded (toListf boundedV)
+
+prop_L  = prop_F  limited (toListf limitedV)
+prop_pL = prop_pF limited (toListf limitedV)
 
 -- For use like: prop_pB bound (toListf takeBoundedB)
 toListf f lb ub t = toList $ f lb ub t

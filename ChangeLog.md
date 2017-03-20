@@ -1,5 +1,13 @@
 # Revision history for containers-hack
 
+## 0.2.1.0  -- 2017-03-20
+
+* `roughLimit` and `limited` could work with negative keys too.
+
+## 0.2.0.0  -- 2017-03-20
+
+* `roughBound` and `bounded` could work with negative keys too.
+
 ## 0.1.0.0  -- 2017-03-20
 
 * Renaming and Refactoring.
