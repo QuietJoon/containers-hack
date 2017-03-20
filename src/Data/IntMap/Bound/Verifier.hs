@@ -71,8 +71,7 @@ rbTester lbx ubx t
   | ( nf ld) && (nnf bd) && ( nf rd) = traceX "B" $
       -- (findMin' bd) <= lb && ub <= (findMax' bd) && t == bd
       case bd of
-          -- (Bin _ _ _ _) -> (matchf lb bd && matchf ub bd) && t == bd
-          (Bin _ _ _ _) -> inlb && inub && t == bd
+          Bin {} -> inlb && inub && t == bd
           (Tip k _) -> lb <= k && k <= ub && t == bd
           _ -> error "[ERROR] rbTester: XXXX"
 
