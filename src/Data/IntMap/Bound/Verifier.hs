@@ -183,6 +183,9 @@ prop_pF f vf =
 prop_B  = prop_F  bounded (toListf boundedV)
 prop_pB = prop_pF bounded (toListf boundedV)
 
+prop_L  = prop_F  limited (toListf limitedV)
+prop_pL = prop_pF limited (toListf limitedV)
+
 -- For use like: prop_pB bound (toListf takeBoundedB)
 toListf f lb ub t = toList $ f lb ub t
 

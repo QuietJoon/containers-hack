@@ -44,11 +44,35 @@ roughBound lb ub = \t ->
     goG Nil = (Nil, Nil, Nil, Nil)
     def ~(l,b,r) = (l,b,Nil,r)
 
+roughLimit lb ub = \t ->
+  case t of
+    (Bin p m l r) -> case () of
+      _ | m > 0 || p < 0 -> def $ goU t
+        | 0 <= lb -> def $ goU l
+        | ub <  0 -> def $ goU r
+        | otherwise -> (goU r, goU l)
+    _ -> goG t
+
+  where
+    goU tree@(Bin p m l r)
+      -- How to clear unnecessary ld/rd
+      | nomatch lb p m && lb > p = goU r
+      | nomatch ub p m && ub < p = goU l
+      | match ub p m && zero ub m = goU l
+      | match lb p m && not (zero lb m) = goU r
+      | otherwise = tree
+    goU tree = tree
+    goG tip@(Tip k _)
+      | k < lb || ub < k = (Nil, Nil)
+      | otherwise = (tip, Nil)
+    goG Nil = (Nil, Nil)
+    def x = (x,Nil)
+
 -- bounded guarantees
 -- (ld,bd,rd): (findMax ld) < lb , lb <= (findMin bd) , (findMax bd) <= ub , ub < (findMin rd)
 -- roughBound does not guarantee any conditions.
-bounded :: Show a => Key -> Key -> IntMap a -> [(Key,a)]
-bounded lb ub t = traceS (roughBound lb ub t) $
+bounded :: Key -> Key -> IntMap a -> [(Key,a)]
+bounded lb ub t =
   if I.null nbd
     then
       case bd of
@@ -86,6 +110,51 @@ bounded lb ub t = traceS (roughBound lb ub t) $
       | otherwise = goL Nil ld ((k,v):aList)
 
     goL _ Nil aList = aList
+
+    go (Bin _ _ l r) aList = go l (go r aList)
+    go (Tip k v) aList = (k,v):aList
+    go Nil aList = aList
+
+
+limited :: Key -> Key -> IntMap a -> [(Key,a)]
+limited lb ub t =
+  if I.null nbd
+    then
+      case bd of
+        (Bin _ _ l r) -> goL l (goR r [])
+        (Tip k _) -> case () of
+          _ | k >= ub -> goR bd []
+            | k <= lb -> goL bd []
+            | otherwise -> goL bd []
+        Nil -> []
+    else
+      goL bd (goR nbd [])
+  where
+    (bd,nbd) = roughLimit lb ub t
+    -- goR: assume that `lb <= findMin base`.
+    goR (Bin p m l r) aList
+      -- assume that there is no Nil in Bin
+      | nomatch ub p m && ub < p = goR l []
+      -- assume that not `I.null r`
+      | match ub p m && zero ub m = goR l []
+      | otherwise = go l (goR r [])
+
+    goR (Tip k v) aList
+      | ub < k = []
+      | otherwise = (k,v) : aList
+
+    goR Nil _ = []
+
+    goL (Bin p m l r) aList
+      | nomatch lb p m && lb > p = goL r aList
+      | match lb p m && not (zero lb m) = goL r aList
+      | otherwise = goL l (go r aList)
+
+    goL (Tip k v) aList
+      | k < lb = aList
+      | otherwise = (k,v) : aList
+
+    goL Nil aList = aList
 
     go (Bin _ _ l r) aList = go l (go r aList)
     go (Tip k v) aList = (k,v):aList
