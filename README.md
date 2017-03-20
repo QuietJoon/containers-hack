@@ -30,4 +30,4 @@ but I'm not sure that I understand it perfectly....
 ### Test
 
 Tested by QuickCheck. This may not cover all of boundary conditions.
-Tested cases are recorded in `TestCases.hs`.
+Tested cases are recorded in `testset.hs`.

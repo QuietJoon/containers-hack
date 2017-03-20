@@ -1,16 +1,15 @@
 module Data.IntMap.Bound where
 
 
-import Data.IntMap.Bound.Base
-
 import Prelude as P
 
 import Data.IntMap.Internal as I
-import Data.Maybe
 
-import Debug.Shortcut
+-- import Debug.Shortcut
+
 
 -- Handle Positive/Negative only case
+roughBound :: Key -> Key -> IntMap a -> (IntMap a, IntMap a, IntMap a, IntMap a)
 roughBound lb ub = \t ->
   case t of
     (Bin p m l r) -> case () of
@@ -27,7 +26,6 @@ roughBound lb ub = \t ->
               (_,pbd,Nil,prd) = roughBound 0 ub l
               (nld,nbd,Nil,_) = roughBound lb (-1) r
     _ -> goG t
-
   where
     goU ld tree@(Bin p m l r) rd
       -- How to clear unnecessary ld/rd
@@ -41,9 +39,10 @@ roughBound lb ub = \t ->
       | k < lb = (tip, Nil, Nil, Nil)
       | k > ub = (Nil, Nil, Nil, tip)
       | otherwise = (Nil, tip, Nil, Nil)
-    goG Nil = (Nil, Nil, Nil, Nil)
+    goG ~Nil = (Nil, Nil, Nil, Nil)
     def ~(l,b,r) = (l,b,Nil,r)
 
+roughLimit :: Key -> Key -> IntMap a -> (IntMap a, IntMap a)
 roughLimit lb ub = \t ->
   case t of
     (Bin p m l r) -> case () of
@@ -52,7 +51,6 @@ roughLimit lb ub = \t ->
         | ub <  0 -> def $ goU r
         | otherwise -> (goU r, goU l)
     _ -> goG t
-
   where
     goU tree@(Bin p m l r)
       -- How to clear unnecessary ld/rd
@@ -65,7 +63,7 @@ roughLimit lb ub = \t ->
     goG tip@(Tip k _)
       | k < lb || ub < k = (Nil, Nil)
       | otherwise = (tip, Nil)
-    goG Nil = (Nil, Nil)
+    goG ~Nil = (Nil, Nil)
     def x = (x,Nil)
 
 -- bounded guarantees
@@ -87,27 +85,27 @@ bounded lb ub t =
   where
     (ld,bd,nbd,rd) = roughBound lb ub t
     -- goR: assume that `lb <= findMin base`.
-    goR (Bin p m l r) rd aList
+    goR (Bin p m l r) rdx _
       -- assume that there is no Nil in Bin
       | nomatch ub p m && ub < p = goR l Nil []
       -- assume that not `I.null r`
       | match ub p m && zero ub m = goR l r []
-      | otherwise = go l (goR r rd [])
+      | otherwise = go l (goR r rdx [])
 
-    goR (Tip k v) rd aList
+    goR (Tip k v) rdx aList
       | ub < k = [(k,v)]
-      | otherwise = (k,v) : goR rd Nil aList
+      | otherwise = (k,v) : goR rdx Nil aList
 
     goR Nil _ _ = []
 
-    goL ld (Bin p m l r) aList
+    goL ldx (Bin p m l r) aList
       | nomatch lb p m && lb > p = goL Nil r aList
       | match lb p m && not (zero lb m) = goL l r aList
-      | otherwise = goL ld l (go r aList)
+      | otherwise = goL ldx l (go r aList)
 
-    goL ld (Tip k v) aList
+    goL ldx (Tip k v) aList
       | k < lb = (k,v) : aList
-      | otherwise = goL Nil ld ((k,v):aList)
+      | otherwise = goL Nil ldx ((k,v):aList)
 
     goL _ Nil aList = aList
 
@@ -132,7 +130,7 @@ limited lb ub t =
   where
     (bd,nbd) = roughLimit lb ub t
     -- goR: assume that `lb <= findMin base`.
-    goR (Bin p m l r) aList
+    goR (Bin p m l r) _
       -- assume that there is no Nil in Bin
       | nomatch ub p m && ub < p = goR l []
       -- assume that not `I.null r`

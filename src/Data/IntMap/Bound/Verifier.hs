@@ -21,10 +21,10 @@ limitedV lb ub =
 boundedV :: Int -> Int -> IntMap Int -> IntMap Int
 boundedV lb ub t = boundedlr
   where
-    limited = limitedV lb ub t
+    limitedv = limitedV lb ub t
     lt = lookupLT lb t
     ut = lookupGT ub t
-    boundedl  = traceS lt $ maybe limited (\(k,v) -> I.insert k v limited ) lt
+    boundedl  = traceS lt $ maybe limitedv (\(k,v) -> I.insert k v limitedv ) lt
     boundedlr = traceS ut $ maybe boundedl (\(k,v) -> I.insert k v boundedl) ut
 
 
@@ -102,12 +102,15 @@ rbTester lbx ubx t
     inub = inubf ub bd
     (lb,ub) = if (abs lbx) <= (abs ubx) then (abs lbx,abs ubx) else (abs ubx,abs lbx)
 
+nf, nnf :: IntMap a -> Bool
 nf  = I.null
 nnf = not . I.null
 
+inlbf, inubf :: Key -> IntMap a -> Bool
 inlbf lb t = notBin t || (matchf lb t || lb <= (findMin' t))
 inubf ub t = notBin t || (matchf ub t || (findMax' t) <= ub)
 
+notBin :: IntMap a -> Bool
 notBin Bin {} = False
 notBin _ = True
 
@@ -133,8 +136,7 @@ binTester aList = go aMap
     go ~Nil = True
 
 
-
-
+fixer, pFixer :: (Key -> Key -> IntMap Key -> b) -> Key -> Key -> [Key] -> b
 fixer f lbx ubx list = f lb ub t
   where
     (lb,ub) = if lbx < ubx then (lbx, ubx) else (ubx, lbx)
@@ -145,6 +147,7 @@ pFixer f lbx ubx list = f lb ub t
     (lb,ub) = if (abs lbx) < (abs ubx) then (abs lbx, abs ubx) else (abs ubx, abs lbx)
     t = double . absList $ list
 
+tester, pTester :: Eq b => (Key -> Key -> IntMap Key -> b) -> (Key -> Key -> IntMap Key -> b) -> Key -> Key -> [Key] -> Bool
 tester f vf lbx ubx list =
   f lb ub t == vf lb ub t
   where
@@ -157,6 +160,7 @@ pTester f vf lbx ubx list =
     (lb,ub) = if (abs lbx) < (abs ubx) then (abs lbx, abs ubx) else (abs ubx, abs lbx)
     t = double . absList $ list
 
+tView :: Show b => (Key -> Key -> IntMap Key -> b) -> (Key -> Key -> IntMap Key -> b) -> Key -> Key -> [Key] -> IO ()
 tView f vf lbx ubx list = do
   print $ f lb ub t
   print $ vf lb ub t
@@ -187,6 +191,7 @@ prop_L  = prop_F  limited (toListf limitedV)
 prop_pL = prop_pF limited (toListf limitedV)
 
 -- For use like: prop_pB bound (toListf takeBoundedB)
+toListf :: (Key -> Key -> IntMap a -> IntMap a) -> Key -> Key -> IntMap a -> [(Key,a)]
 toListf f lb ub t = toList $ f lb ub t
 
 prop_G =
