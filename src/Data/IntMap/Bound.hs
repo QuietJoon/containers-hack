@@ -48,7 +48,7 @@ bounded :: Show a => Key -> Key -> IntMap a -> [(Key,a)]
 -- bound :: Key -> Key -> IntMap a -> [(Key,a)]
 bounded lb ub t = traceS (roughBound lb ub t) $
   case bd of
-    (Bin p m l r) -> traceX "J" goL ld l (goR r rd [])
+    (Bin _ _ l r) -> traceX "J" goL ld l (goR r rd [])
     (Tip k _) -> case () of
       _ | k >= ub -> traceX "K" $ goL Nil ld (goR bd rd [])
         | k <= lb -> traceX "M" $ goL ld bd (goR rd Nil [])
