@@ -1,5 +1,9 @@
 # Revision history for containers-hack
 
+## 0.3.0.1  -- 2017-03-21
+
+* Edit source code more clearly, and optimize very little.
+
 ## 0.3.0.0  -- 2017-03-21
 
 * Change name from `bounded` to `boundedOf`.

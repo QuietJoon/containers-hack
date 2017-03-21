@@ -28,8 +28,8 @@ roughBound lb ub = \t ->
   where
     goU ld tree@(Bin p m l r) rd
       -- How to clear unnecessary ld/rd
-      | nomatch lb p m && lb > p = goU l r rd
-      | nomatch ub p m && ub < p = goU ld l r
+      | nomatch lb p m && lb > p = (r, Nil, rd)
+      | nomatch ub p m && ub < p = (ld, Nil, l)
       | match ub p m && zero ub m = goU ld l r
       | match lb p m && not (zero lb m) = goU l r rd
       | otherwise = (ld, tree, rd)
@@ -52,8 +52,8 @@ roughLimit lb ub = \t ->
     _ -> goG t
   where
     goU tree@(Bin p m l r)
-      | nomatch lb p m && lb > p = goU r
-      | nomatch ub p m && ub < p = goU l
+      | nomatch lb p m && lb > p = Nil
+      | nomatch ub p m && ub < p = Nil
       | match ub p m && zero ub m = goU l
       | match lb p m && not (zero lb m) = goU r
       | otherwise = tree
@@ -83,12 +83,12 @@ boundedOf lb ub t =
   where
     (ld,bd,nbd,rd) = roughBound lb ub t
     -- goR: assume that `lb <= findMin base`.
-    goR (Bin p m l r) rdx _
+    goR tree@(Bin p m l r) rdx aList
       -- assume that there is no Nil in Bin
-      | nomatch ub p m && ub < p = goR l Nil []
-      -- assume that not `I.null r`
-      | match ub p m && zero ub m = goR l r []
-      | otherwise = go l (goR r rdx [])
+      | nomatch ub p m =
+          if ub < p then goR l Nil [] else go tree (goR rdx Nil aList)
+      | match ub p m =
+          if zero ub m then goR l r [] else go l (goR r rdx [])
 
     goR (Tip k v) rdx aList
       | ub < k = [(k,v)]
@@ -96,10 +96,11 @@ boundedOf lb ub t =
 
     goR Nil _ _ = []
 
-    goL ldx (Bin p m l r) aList
-      | nomatch lb p m && lb > p = goL Nil r aList
-      | match lb p m && not (zero lb m) = goL l r aList
-      | otherwise = goL ldx l (go r aList)
+    goL ldx tree@(Bin p m l r) aList
+      | nomatch lb p m =
+        if lb > p then goL Nil r aList else goL Nil ldx (go tree aList)
+      | match lb p m =
+          if zero lb m then goL ldx l (go r aList) else goL l r aList
 
     goL ldx (Tip k v) aList
       | k < lb = (k,v) : aList
@@ -112,7 +113,7 @@ boundedOf lb ub t =
     go Nil aList = aList
 
 
-limitedOf:: Key -> Key -> IntMap a -> [(Key,a)]
+limitedOf :: Key -> Key -> IntMap a -> [(Key,a)]
 limitedOf lb ub t =
   if I.null nbd
     then

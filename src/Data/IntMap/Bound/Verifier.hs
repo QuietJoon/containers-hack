@@ -84,7 +84,8 @@ rbTester lbx ubx t
       (findMax' ld) < lb && (findMax' t) == (findMax' ld)
 
   | (nnf ld) && ( nf bd) && (nnf rd) = traceX "E" $
-      (lookupGT' lb t) == (findMin' rd) && (lookupLT' ub t) == (findMax' ld)
+      (findMax' ld) < lb && ub < (findMin' rd)
+      && (lookupGT' lb t) == (findMin' rd) && (lookupLT' ub t) == (findMax' ld)
 
   | (nnf ld) && (nnf bd) && ( nf rd) = traceX "G" $
       -- (findMax' ld) <  lb && inlb && inub && (findMax' t) == (findMax' bd)
