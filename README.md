@@ -19,6 +19,12 @@ It is equivalent to `filterWithKey (\k _ -> lowerBound <= k && k <= upperBound)`
 A function to get a part of sequence in a `IntMap a` by its key which covers lower bound and upper bound.
 It is equivalent to `limitedOf lowerBound upperBound t` + `lookupLT lowerBound t` + `lookupGT upperBound t`.
 
+### `rough*`
+
+Maybe internal function.
+Bounding/Limiting at masking level.
+This post process should be finished very quickly, and not duplicate with `boundedOf/limitedOf`.
+
 ## Proof & Test Status
 
 ### Proof

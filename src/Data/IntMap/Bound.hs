@@ -8,7 +8,6 @@ import Data.IntMap.Internal as I
 -- import Debug.Shortcut
 
 
--- Handle Positive/Negative only case
 roughBound :: Key -> Key -> IntMap a -> (IntMap a, IntMap a, IntMap a, IntMap a)
 roughBound lb ub = \t ->
   case t of
@@ -53,7 +52,6 @@ roughLimit lb ub = \t ->
     _ -> goG t
   where
     goU tree@(Bin p m l r)
-      -- How to clear unnecessary ld/rd
       | nomatch lb p m && lb > p = goU r
       | nomatch ub p m && ub < p = goU l
       | match ub p m && zero ub m = goU l
@@ -115,7 +113,7 @@ boundedOf lb ub t =
 
 
 limitedOf:: Key -> Key -> IntMap a -> [(Key,a)]
-limitedOflb ub t =
+limitedOf lb ub t =
   if I.null nbd
     then
       case bd of
