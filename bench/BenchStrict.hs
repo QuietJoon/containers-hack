@@ -62,10 +62,10 @@ lrims12   = map (\(lb:ub:rest) -> (lb,ub, (double . absList $ rest))) $ lRandomI
 lrims13   = map (\(lb:ub:rest) -> (lb,ub, (double . absList $ rest))) $ lRandomIntLists 100000 3 :: [(Int,Int,I.IntMap Int)]
 
 mBound :: [(Int,Int,I.IntMap Int)] -> [[(Int,Int)]]
-mBound = map (\(lb,ub,m) -> O.bounded lb ub m)
+mBound = map (\(lb,ub,m) -> O.boundedOf lb ub m)
 
 mBoundN :: [(Int,Int,I.IntMap Int)] -> [[(Int,Int)]]
-mBoundN = map (\(lb,ub,m) -> N.bounded lb ub m)
+mBoundN = map (\(lb,ub,m) -> N.boundedOf lb ub m)
 
 
 main = --lrils10 `deepseq` lrils11 `deepseq` lrils12 `deepseq` lrils13 `deepseq`

@@ -1,5 +1,10 @@
 # Revision history for containers-hack
 
+## 0.3.0.0  -- 2017-03-21
+
+* Change name from `bounded` to `boundedOf`.
+* Move `Data.IntMap.Bound.Base` to `Data.IntMap.Hack.Base`.
+
 ## 0.2.1.0  -- 2017-03-20
 
 * `roughLimit` and `limited` could work with negative keys too.

@@ -1,4 +1,4 @@
-module Data.IntMap.Bound.Base where
+module Data.IntMap.Hack.Base where
 
 
 import Data.IntMap.Internal as I

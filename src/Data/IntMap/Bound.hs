@@ -66,11 +66,11 @@ roughLimit lb ub = \t ->
     goG ~Nil = (Nil, Nil)
     def x = (x,Nil)
 
--- bounded guarantees
+-- boundedOf guarantees
 -- (ld,bd,rd): (findMax ld) < lb , lb <= (findMin bd) , (findMax bd) <= ub , ub < (findMin rd)
 -- roughBound does not guarantee any conditions.
-bounded :: Key -> Key -> IntMap a -> [(Key,a)]
-bounded lb ub t =
+boundedOf :: Key -> Key -> IntMap a -> [(Key,a)]
+boundedOf lb ub t =
   if I.null nbd
     then
       case bd of
@@ -114,8 +114,8 @@ bounded lb ub t =
     go Nil aList = aList
 
 
-limited :: Key -> Key -> IntMap a -> [(Key,a)]
-limited lb ub t =
+limitedOf:: Key -> Key -> IntMap a -> [(Key,a)]
+limitedOflb ub t =
   if I.null nbd
     then
       case bd of

@@ -61,7 +61,7 @@ lrils13   = map (\(lb:ub:rest) -> (lb,ub, (absList $ rest))) $ lRandomIntLists 1
 
 
 mBound :: [(Int,Int,I.IntMap Int)] -> [[(Int,Int)]]
-mBound = map (\(lb,ub,m) -> bounded lb ub m)
+mBound = map (\(lb,ub,m) -> boundedOf lb ub m)
 
 mCombined :: [(Int,Int,I.IntMap Int)] -> [[(Int,Int)]]
 mCombined = map (\(lb,ub,m) -> I.toList $ boundedV lb ub m)

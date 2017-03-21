@@ -2,7 +2,7 @@ module Data.IntMap.Bound.Verifier where
 
 -- import Base
 import Data.IntMap.Bound
-import Data.IntMap.Bound.Base
+import Data.IntMap.Hack.Base
 import Data.IntMap.Hack.Tool
 import Data.IntMap.Hack.Deprecated
 import Data.IntMap.Internal as I
@@ -184,11 +184,11 @@ prop_pF f vf =
   quickCheckWith stdArgs { maxSuccess = 1000000 }
     (pTester f vf :: Int -> Int -> [Int] -> Bool)
 
-prop_B  = prop_F  bounded (toListf boundedV)
-prop_pB = prop_pF bounded (toListf boundedV)
+prop_B  = prop_F  boundedOf (toListf boundedV)
+prop_pB = prop_pF boundedOf (toListf boundedV)
 
-prop_L  = prop_F  limited (toListf limitedV)
-prop_pL = prop_pF limited (toListf limitedV)
+prop_L  = prop_F  limitedOf(toListf limitedV)
+prop_pL = prop_pF limitedOf(toListf limitedV)
 
 -- For use like: prop_pB bound (toListf takeBoundedB)
 toListf :: (Key -> Key -> IntMap a -> IntMap a) -> Key -> Key -> IntMap a -> [(Key,a)]
